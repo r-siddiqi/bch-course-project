@@ -1318,7 +1318,7 @@ with tab_results:
     colors denote subcellular compartment. Note how cluster separation
     improves with model size. PCA explains only ~18–22% of total variance at
     each scale, so the visual separation is a lower bound on what the
-    full-dimensional classifier can access. Raw output from our pipeline.
+    full-dimensional classifier can access. Raw output from pipeline.
     </div>
     """, unsafe_allow_html=True)
 
