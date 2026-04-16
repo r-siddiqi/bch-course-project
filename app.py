@@ -1,5 +1,5 @@
 """
-Protein Subcellular Localization — ESM-2 Scaling Study
+Protein Subcellular Localization: ESM-2 Scaling Study
 Streamlit web application for BCH 394P Bioinformatics course project.
 
 Author: Rida Siddiqi, UT Austin
