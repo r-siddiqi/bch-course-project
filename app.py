@@ -1551,21 +1551,21 @@ with tab_discussion:
     coherent. The endomembrane system, comprising the ER, Golgi apparatus,
     and lysosome/vacuole, is a physically and functionally connected
     network through which proteins traffic via vesicular transport{cite(27)}.
-    Retention in the ER is signaled by C-terminal KDEL/HDEL motifs; Golgi
-    retention involves transmembrane-domain length and palmitoylation
-    signals; lysosomal delivery is mediated by mannose-6-phosphate
-    tags{cite(28)}. Many proteins pass through multiple compartments during
-    their lifecycle, and the boundary between "ER-resident" and
-    "Golgi-resident" is genuinely blurry at the single-sequence level. The
-    confusability observed in our classifier likely reflects a real
-    biological ambiguity rather than pure model failure.
-
-    Conversely, peroxisomal targeting is mediated by very short, well-defined
-    signals (PTS1: SKL or related tripeptides at the C-terminus; PTS2: a
-    nonapeptide near the N-terminus){cite(29)}. These signals are highly
-    sequence-specific and easily detectable, which explains the near-perfect
-    ROC AUC (0.998) for Peroxisome despite its tiny training sample size.
-    The result is a beautiful demonstration that pLMs learn biologically
+    Each compartment uses distinct retention and sorting mechanisms: the ER
+    relies on short C-terminal motifs, the Golgi on transmembrane-domain
+    properties and covalent attachment of fatty acids, and lysosomes on
+    sugar-based sorting tags{cite(28)}. Many proteins pass through multiple
+    compartments during their lifecycle, and the boundary between
+    "ER-resident" and "Golgi-resident" is genuinely blurry at the
+    single-sequence level. The confusability observed in our classifier
+    likely reflects a real biological ambiguity rather than pure model
+    failure.
+ 
+    Conversely, peroxisomal targeting is mediated by very short,
+    well-defined motifs near the N- or C-terminus{cite(29)}. These signals
+    are highly sequence-specific and easily detectable, which explains the
+    near-perfect ROC AUC (0.998) for Peroxisome despite its tiny training
+    sample size. The result is a demonstration that pLMs learn biologically
     meaningful sequence features without any explicit supervision on
     targeting signals.
     """, unsafe_allow_html=True)
