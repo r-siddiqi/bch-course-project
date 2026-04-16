@@ -1,4 +1,6 @@
-# force light mode so the site looks the same regardless of OS/browser theme
+mkdir -p .streamlit
+cat > .streamlit/config.toml << 'EOF'
+
 [theme]
 base = "light"
 primaryColor = "#bf5700"
@@ -12,3 +14,4 @@ toolbarMode = "minimal"
 
 [browser]
 gatherUsageStats = false
+EOF
