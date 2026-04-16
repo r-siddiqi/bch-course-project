@@ -1,0 +1,14 @@
+# force light mode so the site looks the same regardless of OS/browser theme
+[theme]
+base = "light"
+primaryColor = "#bf5700"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f5f5f5"
+textColor = "#1a1a2e"
+font = "sans serif"
+
+[client]
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false
