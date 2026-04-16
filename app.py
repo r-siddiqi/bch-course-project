@@ -220,16 +220,38 @@ MODEL_COLORS = {
 }
 
 try:
-    ASSETS = Path(__file__).parent / "assets"
+    ASSETS = Path(__file__).parent
 except NameError:
-    ASSETS = Path(".") / "assets"
+    ASSETS = Path(".")
 
 
 def load_image_b64(fname):
-    p = ASSETS / fname
-    if p.exists():
-        return base64.b64encode(p.read_bytes()).decode()
+    """Try multiple paths to find the image file."""
+    candidates = [
+        ASSETS / fname,
+        Path(".") / fname,
+        Path(__file__).parent / fname if "__file__" in dir() else None,
+    ]
+    for p in candidates:
+        if p is not None and p.exists():
+            return base64.b64encode(p.read_bytes()).decode()
     return None
+
+
+def get_image_path(fname):
+    """Return a path that st.image can use directly."""
+    candidates = [
+        ASSETS / fname,
+        Path(".") / fname,
+    ]
+    try:
+        candidates.append(Path(__file__).parent / fname)
+    except NameError:
+        pass
+    for p in candidates:
+        if p.exists():
+            return str(p)
+    return fname  # fall back to bare filename
 
 
 def cite(n):
@@ -1308,9 +1330,7 @@ with tab_results:
     spaces{cite(8)}{cite(11)}.
     """, unsafe_allow_html=True)
 
-    img_pca_b64 = load_image_b64("cell13_fig0.png")
-    if img_pca_b64:
-        st.image(f"data:image/png;base64,{img_pca_b64}", use_container_width=True)
+    st.image("cell13_fig0.png", use_container_width=True)
     st.markdown(f"""
     <div class="fig-caption">
     <b>Figure 12.</b> 2D PCA projections of ESM-2 embeddings on the test set
@@ -1318,7 +1338,7 @@ with tab_results:
     colors denote subcellular compartment. Note how cluster separation
     improves with model size. PCA explains only ~18–22% of total variance at
     each scale, so the visual separation is a lower bound on what the
-    full-dimensional classifier can access. Raw output from pipeline.
+    full-dimensional classifier can access. Raw output from our pipeline.
     </div>
     """, unsafe_allow_html=True)
 
@@ -1329,6 +1349,8 @@ with tab_results:
     img_mcc_b64 = load_image_b64("cell14_fig0.png")
     if img_mcc_b64:
         st.image(f"data:image/png;base64,{img_mcc_b64}", use_container_width=True)
+    else:
+        st.image(get_image_path("cell14_fig0.png"), use_container_width=True)
     st.markdown(f"""
     <div class="fig-caption">
     <b>Figure 13.</b> Per-class Matthews correlation coefficient (MCC) for
