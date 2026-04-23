@@ -286,27 +286,24 @@ tab_intro, tab_methods, tab_results, tab_discussion, tab_refs = st.tabs([
 with tab_intro:
     st.header("1. Introduction")
 
-    st.subheader("1.1 The Importance of Subcellular Localization")
+    st.subheader("1.1 Motivation")
     st.markdown(f"""
-    Every eukaryotic cell is a highly compartmentalized system in which proteins
-    must reach the correct organelle to carry out their biological functions. A
-    nuclear transcription factor stranded in the cytoplasm, a mitochondrial
-    kinase mis-targeted to the endoplasmic reticulum, or a plasma-membrane
-    receptor retained in the Golgi apparatus are all examples of how
-    mis-localization can disrupt cellular physiology. Mis-localization is a
-    documented driver of numerous human diseases, including cancer,
-    neurodegenerative disorders, and metabolic syndromes{cite(1)}{cite(2)}.
-    Determining where a protein resides is therefore foundational to
-    understanding its function and its role in disease.
+    In this project, I investigated how different sizes of a protein language
+    model, Meta's ESM-2, perform when predicting the subcellular localization
+    of a protein given only its amino acid sequence. In a previous course on
+    large language models, we discussed how there is currently a race to build
+    bigger and bigger models, but several studies have shown that bigger is not
+    always significantly better{cite(12)}{cite(14)}. We touched upon this idea
+    in our BCH course as well.
 
-    Although experimental methods such as fluorescence microscopy,
-    immunohistochemistry, and proximity-labeling proteomics can reveal protein
-    localization with high fidelity, they are costly, low-throughput, and
-    difficult to apply at genome scale{cite(3)}. Only a small fraction of the
-    hundreds of millions of proteins in UniProt have been localized
-    experimentally{cite(4)}. This gap motivates the development of accurate
-    computational predictors that can assign subcellular locations directly
-    from amino-acid sequence.
+    Determining where a protein resides inside the cell is foundational to
+    understanding its function and its role in disease. Mis-localization is a
+    documented driver of cancer, neurodegenerative disorders, and metabolic
+    syndromes{cite(1)}{cite(2)}. Experimental methods such as fluorescence
+    microscopy can reveal protein localization, but they are costly and
+    low-throughput{cite(3)}. Only a small fraction of proteins in UniProt have
+    been localized experimentally{cite(4)}, motivating accurate computational
+    predictors that work directly from sequence.
     """, unsafe_allow_html=True)
 
     # ── figure: cell compartment schematic (original plotly diagram) ──
@@ -363,11 +360,28 @@ with tab_intro:
     st.markdown(f"""
     <div class="fig-caption">
     <b>Figure 1.</b> Schematic of the ten eukaryotic subcellular compartments
-    annotated in the DeepLoc 2.0 dataset{cite(3)}. Compartments are drawn
-    roughly to scale within a generic eukaryotic cell. Each protein in our
-    training set is assigned to exactly one of these locations. Adapted
-    from Thumuluri et al.[3].
+    annotated in the DeepLoc 2.0 dataset{cite(3)}. Adapted from Thumuluri
+    et al.{cite(3)}.
     </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown(f"""
+    The dataset used in this study was made available by the authors of the
+    DeepLoc 2.0 model{cite(3)}, which set out to accomplish this same task of
+    predicting subcellular localizations. This dataset is a derivative of the
+    UniProt database{cite(4)} and contains eukaryotic sequences filtered to
+    remove fragments (which could have N-terminal or C-terminal sorting signals
+    missing), sequences of length >40 amino acids, and only experimentally
+    annotated subcellular localizations. We have 10 possible locations for
+    the proteins: Cytoplasm, Nucleus, Extracellular, Cell membrane,
+    Mitochondrion, Plastid, Endoplasmic reticulum, Lysosome/Vacuole, Golgi
+    apparatus, and Peroxisome.
+
+    Sorting signals in this dataset are dominated by signal peptides (SP)
+    as annotated by SignalP{cite(6)}, followed by transmembrane domains (TM),
+    where only the first domain is annotated because literature has shown it
+    to be most important for localization, and mitochondrial transit
+    peptides (MT){cite(5)}.
     """, unsafe_allow_html=True)
 
     st.subheader("1.2 A Brief History of Localization Prediction")
@@ -423,6 +437,14 @@ with tab_intro:
 
     # ── figure: ESM-2 architecture schematic ──
     st.subheader("Figure 2. Conceptual Schematic of ESM-2 Feature Extraction")
+    st.markdown("""
+    For a brief overview of our method: we have an amino acid sequence that is
+    processed by a transformer language model, which converts each position
+    in the sequence into a high-dimensional vector. These vectors are then
+    averaged (mean pooled) to produce a single embedding for the whole
+    protein, which is then fed into a multi-layer perceptron (MLP) or one of
+    our five other classifiers to predict its subcellular location.
+    """, unsafe_allow_html=True)
     fig_arch = go.Figure()
 
     # input sequence tokens
@@ -954,21 +976,15 @@ with tab_methods:
 with tab_results:
     st.header("3. Results")
 
-    # key metrics
     st.subheader("3.1 Headline Results")
-    m1, m2, m3, m4 = st.columns(4)
-    with m1:
-        st.markdown("""<div class="metric-card"><div class="metric-value">0.759</div>
-        <div class="metric-label">Best Macro F1<br>(ESM-2 650M + SVM)</div></div>""", unsafe_allow_html=True)
-    with m2:
-        st.markdown("""<div class="metric-card"><div class="metric-value">81.6%</div>
-        <div class="metric-label">Best Accuracy<br>(ESM-2 650M + SVM)</div></div>""", unsafe_allow_html=True)
-    with m3:
-        st.markdown("""<div class="metric-card"><div class="metric-value">0.959</div>
-        <div class="metric-label">Best ROC AUC<br>(ESM-2 650M + SVM)</div></div>""", unsafe_allow_html=True)
-    with m4:
-        st.markdown("""<div class="metric-card"><div class="metric-value">+10.9%</div>
-        <div class="metric-label">F1 Gain 8M → 650M<br>(SVM: 0.685 → 0.759)</div></div>""", unsafe_allow_html=True)
+    st.markdown("""
+    The best-performing combination across all experiments was **ESM-2 650M + SVM (RBF kernel)**:
+
+    - **Best Macro F1:** 0.759
+    - **Best Accuracy:** 81.6%
+    - **Best ROC AUC:** 0.959
+    - **F1 Gain from scaling (8M → 650M):** +10.9% (SVM: 0.685 → 0.759)
+    """)
 
     st.markdown("---")
 
@@ -1022,20 +1038,141 @@ with tab_results:
     st.markdown(f"""
     <div class="fig-caption">
     <b>Figure 5.</b> Performance of six classifiers as a function of ESM-2
-    model size. The x-axis is on a log scale. The shaded red region shows
-    the bootstrap 95% CI for SVM macro-F1. All classifiers improve with
-    scale; SVM-RBF{cite(21)} is the uniformly best choice. Compare with the
-    analogous regression curves reported in Vieira et al.{cite(14)}, Figure 4,
-    where SVR achieved similarly dominant performance on Tm prediction.
+    model size (x-axis on log scale). The shaded red region shows the
+    bootstrap 95% confidence interval for SVM macro-F1: this was computed by
+    resampling the test set with replacement 1,000 times{cite(24)} and
+    recalculating macro-F1 each time, giving a range of plausible values
+    rather than a single point estimate. The CI is shown for SVM because it
+    is the best-performing classifier at every scale{cite(21)}. All
+    classifiers improve with model size, but the curves flatten between
+    150M and 650M, suggesting diminishing returns at larger scales.
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown("---")
 
-    # ── NEW: heatmap of all results ──
-    st.subheader("3.3 Classifier × Model Heatmap")
+    # ── statistical tests (moved from 3.13 to follow Figure 5) ──
+    st.subheader("3.3 Statistical Significance of Scaling")
     st.markdown(f"""
-    Figure 6 summarizes the complete 4 × 6 grid of macro-F1 results in a
+    Bootstrap 95% confidence intervals{cite(24)} for macro-F1 using SVM are
+    shown below. The 8M and 35M CIs do not overlap, nor do 35M and 150M,
+    indicating significant improvements. The 150M and 650M CIs, however,
+    <i>do</i> overlap (8M: [0.661, 0.705], 650M: [0.738, 0.778]) at the
+    per-model comparison, so by this criterion the 150M → 650M step is only
+    marginally significant.
+    """, unsafe_allow_html=True)
+
+    ci_df = pd.DataFrame([
+        {"Model": MODELS[m]["name"],
+         "Macro F1": f'{RESULTS[m]["svm"]["macro_f1"]:.4f}',
+         "95% CI": f'[{BOOTSTRAP_CI[m]["svm"][0]:.4f}, {BOOTSTRAP_CI[m]["svm"][1]:.4f}]'}
+        for m in models_list
+    ])
+    st.dataframe(ci_df, use_container_width=True, hide_index=True)
+
+    st.markdown(f"""
+    Table 5 shows Wilcoxon signed-rank test results{cite(25)} on per-class
+    F1 scores between adjacent model sizes, separately for each classifier.
+    The Wilcoxon signed-rank test is a non-parametric alternative to the
+    paired t-test; it compares whether the per-class F1 scores consistently
+    improve across all ten compartments when moving to a larger model, rather
+    than the improvement being driven by just one or two classes:
+    """, unsafe_allow_html=True)
+
+    clf_for_wilcoxon = st.selectbox(
+        "Select classifier:", list(WILCOXON.keys()),
+        format_func=lambda x: CLF_NAMES[x],
+    )
+    w_rows = []
+    for comparison, pval, delta in WILCOXON[clf_for_wilcoxon]:
+        sig = "Yes (p < 0.05)" if pval < 0.05 else "No"
+        w_rows.append({"Comparison": comparison, "p-value": f"{pval:.4f}",
+                       "Mean F1 Change": f"+{delta:.4f}" if delta > 0 else f"{delta:.4f}",
+                       "Significant?": sig})
+    w_df = pd.DataFrame(w_rows)
+    st.dataframe(w_df, use_container_width=True, hide_index=True)
+
+    st.markdown(f"""
+    The 8M → 35M and 35M → 150M scaling steps yield statistically
+    significant improvements (<i>p</i> &lt; 0.05) for most classifiers, with
+    the exception of XGBoost (<i>p</i> = 0.08) and Random Forest
+    (<i>p</i> = 0.38) at the 35M → 150M step. However, the 150M → 650M step
+    is <i>not</i> significant for four out of six classifiers: SVM
+    (<i>p</i> = 0.16), KNN (<i>p</i> = 0.19), MLP (<i>p</i> = 0.38), and
+    Random Forest (<i>p</i> = 0.32). Only Logistic Regression
+    (<i>p</i> = 0.002) and XGBoost (<i>p</i> = 0.08, borderline) show
+    continued significant gains at the largest scale. This supports
+    <b>H3</b> and suggests that for classification tasks, the performance
+    benefit of scaling plateaus earlier than one might expect.
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── scatter: class frequency vs per-class F1 (moved from 3.9) ──
+    st.subheader("3.4 Class Frequency vs. Per-Class Performance")
+    st.markdown(f"""
+    Figure 6 plots per-class F1 against training-set class frequency. There
+    is a moderate positive correlation (Pearson <i>r</i> ≈ 0.54), confirming
+    that rare compartments are harder to predict, but the correlation is
+    imperfect: Plastid (n=730) and Peroxisome (n=173) both achieve F1 > 0.78,
+    demonstrating that distinctive sequence signals can overcome low sample
+    counts{cite(29)}.
+    """, unsafe_allow_html=True)
+
+    fig_scat = go.Figure()
+    fig_scat.add_trace(go.Scatter(
+        x=[CLASS_DIST[c] for c in LABELS],
+        y=[PER_CLASS_F1_650M_SVM[c] for c in LABELS],
+        mode="markers+text",
+        marker=dict(size=[CLASS_DIST[c]/60 + 10 for c in LABELS],
+                    color="#bf5700", line=dict(color="#333", width=1)),
+        text=LABELS, textposition="top center",
+        hovertemplate="<b>%{text}</b><br>n=%{x}<br>F1=%{y:.3f}<extra></extra>",
+    ))
+    fig_scat.update_layout(
+        title="Figure 6. Class size vs per-class F1 (ESM-2 650M + SVM)",
+        xaxis_title="Training Set Count (log)", yaxis_title="Per-class F1",
+        xaxis=dict(type="log"), height=500,
+        template="plotly_white", font=dict(size=13), plot_bgcolor="white",
+    )
+    st.plotly_chart(fig_scat, use_container_width=True)
+    st.markdown(f"""
+    <div class="fig-caption">
+    <b>Figure 6.</b> Relationship between training-set class frequency
+    (x-axis, log scale) and per-class F1 on the test set for ESM-2 650M +
+    SVM. Marker size is proportional to class frequency. Although
+    underrepresented classes like Golgi apparatus (n=412, F1=0.55) are
+    generally harder, compartments with distinctive targeting signals such
+    as Peroxisome (n=173, F1=0.78) and Plastid (n=730, F1=0.88) perform
+    well despite small sample sizes{cite(29)}{cite(30)}.
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── per-class MCC (moved from 3.11) ──
+    st.subheader("3.5 Per-Class MCC Across Classifiers")
+    st.image("cell14_fig0.png", use_container_width=True)
+    st.markdown(f"""
+    <div class="fig-caption">
+    <b>Figure 7.</b> Per-class Matthews correlation coefficient (MCC) for
+    the ESM-2 650M model, broken down by classifier. MCC ranges from -1
+    (perfect inverse) to +1 (perfect agreement), with 0 corresponding to
+    random chance{cite(23)}. It is a balanced metric that accounts for all
+    four entries of the confusion matrix (TP, TN, FP, FN), making it robust
+    to class imbalance. SVM dominates or matches all other classifiers on
+    every compartment. Endoplasmic reticulum and Golgi apparatus are
+    consistently the hardest classes across all classifiers, mirroring the
+    confusion matrix patterns (Figure 11).
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── heatmap of all results ──
+    st.subheader("3.6 Classifier \u00d7 Model Heatmap")
+    st.markdown(f"""
+    Figure 8 summarizes the complete 4 × 6 grid of macro-F1 results in a
     single heatmap. The diagonal gradient from bottom-left (worst) to
     top-right (best) confirms that both embedding quality and classifier
     choice contribute independently to performance. Notably, an ESM-2 35M +
@@ -1060,13 +1197,13 @@ with tab_results:
         colorbar=dict(title="Macro F1"),
     ))
     fig_heat.update_layout(height=430, template="plotly_white",
-                           title="Figure 6. Macro-F1 across all classifier × model combinations",
+                           title="Figure 8. Macro-F1 across all classifier × model combinations",
                            font=dict(size=13), plot_bgcolor="white",
                            margin=dict(l=140))
     st.plotly_chart(fig_heat, use_container_width=True)
     st.markdown(f"""
     <div class="fig-caption">
-    <b>Figure 6.</b> Heatmap of all 24 classifier × model combinations. Each
+    <b>Figure 8.</b> Heatmap of all 24 classifier × model combinations. Each
     cell reports the macro-F1 score on the held-out test set. Classifier
     rows are ordered by their mean performance across models. The strongest
     cell (top-right) is ESM-2 650M + SVM; the weakest (bottom-left) is
@@ -1079,9 +1216,9 @@ with tab_results:
     st.markdown("---")
 
     # ── NEW: effect size / incremental gain ──
-    st.subheader("3.4 Per-Scaling-Step Gains and Efficiency")
+    st.subheader("3.7 Per-Scaling-Step Gains and Efficiency")
     st.markdown(f"""
-    Figure 7 breaks down the macro-F1 improvement from each model-size step,
+    Figure 9 breaks down the macro-F1 improvement from each model-size step,
     per classifier. Most classifiers see their biggest gain from the
     8M → 35M transition, with substantially smaller incremental gains from
     150M → 650M. Logistic Regression is the exception: it continues to
@@ -1100,7 +1237,7 @@ with tab_results:
             marker_color=CLF_COLORS[clf],
         ))
     fig_steps.update_layout(
-        title="Figure 7. Incremental macro-F1 gain per scaling step",
+        title="Figure 9. Incremental macro-F1 gain per scaling step",
         xaxis_title="Scaling Step", yaxis_title="Δ Macro F1",
         barmode="group", height=480, template="plotly_white",
         font=dict(size=13), plot_bgcolor="white",
@@ -1109,7 +1246,7 @@ with tab_results:
     st.plotly_chart(fig_steps, use_container_width=True)
     st.markdown(f"""
     <div class="fig-caption">
-    <b>Figure 7.</b> Incremental macro-F1 gain at each scaling step. Gains
+    <b>Figure 9.</b> Incremental macro-F1 gain at each scaling step. Gains
     shrink at larger scales for all classifiers except Logistic Regression.
     KNN actually shows a slight negative change at the 150M → 650M step,
     suggesting that very high-dimensional embeddings can degrade cosine-based
@@ -1118,7 +1255,7 @@ with tab_results:
     """, unsafe_allow_html=True)
 
     # training time vs performance
-    st.subheader("3.5 Accuracy–Compute Pareto Frontier")
+    st.subheader("3.8 Accuracy–Compute Pareto Frontier")
     fig_pareto = go.Figure()
     for clf in clf_order:
         xs = [RESULTS[m][clf]["train_s"] / 60 for m in models_list]
@@ -1133,7 +1270,7 @@ with tab_results:
             hovertemplate="<b>%{text}</b><br>train time: %{x:.1f} min<br>F1: %{y:.4f}<extra></extra>",
         ))
     fig_pareto.update_layout(
-        title="Figure 8. Classifier training time vs. macro-F1 (marker size ∝ model params)",
+        title="Figure 10. Classifier training time vs. macro-F1 (marker size ∝ model params)",
         xaxis_title="Classifier Training Time (minutes, log scale)",
         yaxis_title="Macro F1",
         xaxis=dict(type="log"),
@@ -1143,7 +1280,7 @@ with tab_results:
     st.plotly_chart(fig_pareto, use_container_width=True)
     st.markdown(f"""
     <div class="fig-caption">
-    <b>Figure 8.</b> Accuracy–compute Pareto frontier. Points further to the
+    <b>Figure 10.</b> Accuracy–compute Pareto frontier. Points further to the
     upper-left are better (higher F1, lower training time). MLP dominates the
     frontier in the mid-accuracy regime; SVM achieves the highest F1 but
     requires substantially more CPU time; XGBoost is consistently the
@@ -1155,7 +1292,7 @@ with tab_results:
     st.markdown("---")
 
     # ── full table ──
-    st.subheader("3.6 Complete Results Table")
+    st.subheader("3.9 Complete Results Table")
     rows = []
     for m_key, m_info in MODELS.items():
         for clf_key, metrics in sorted(RESULTS[m_key].items(),
@@ -1175,9 +1312,9 @@ with tab_results:
     st.markdown("---")
 
     # ── confusion matrix ──
-    st.subheader("3.7 Confusion Matrix of the Best Model")
+    st.subheader("3.10 Confusion Matrix of the Best Model")
     st.markdown(f"""
-    Figure 9 shows the normalized confusion matrix for the best
+    Figure 11 shows the normalized confusion matrix for the best
     model–classifier pairing (ESM-2 650M + SVM). Diagonal entries are class
     recalls; off-diagonals are systematic confusions. The matrix reveals a
     biological pattern: compartments that share trafficking pathways are
@@ -1196,7 +1333,7 @@ with tab_results:
         colorbar=dict(title="Proportion"),
     ))
     fig_cm.update_layout(
-        title="Figure 9. Normalized confusion matrix: ESM-2 650M + SVM",
+        title="Figure 11. Normalized confusion matrix: ESM-2 650M + SVM",
         xaxis_title="Predicted", yaxis_title="True",
         height=550, template="plotly_white",
         yaxis=dict(autorange="reversed"), font=dict(size=13),
@@ -1206,7 +1343,7 @@ with tab_results:
     st.plotly_chart(fig_cm, use_container_width=True)
     st.markdown(f"""
     <div class="fig-caption">
-    <b>Figure 9.</b> Normalized confusion matrix for the best
+    <b>Figure 11.</b> Normalized confusion matrix for the best
     model–classifier pair (ESM-2 650M + SVM) on the held-out test set. Rows
     are true compartments; columns are predicted. Diagonal = recall. The
     endomembrane cluster (ER ↔ Golgi ↔ Lysosome) shows the largest
@@ -1218,9 +1355,9 @@ with tab_results:
     st.markdown("---")
 
     # ── per-class F1 dumbbell: 8M vs 650M ──
-    st.subheader("3.8 Which Compartments Benefit Most from Scaling?")
+    st.subheader("3.11 Which Compartments Benefit Most from Scaling?")
     st.markdown(f"""
-    Figure 10 shows per-class F1 for the smallest (8M) and largest (650M)
+    Figure 12 shows per-class F1 for the smallest (8M) and largest (650M)
     models using SVM. All compartments improve, but the magnitude of
     improvement varies. Golgi apparatus shows the largest absolute gain
     (+0.14 F1), suggesting that larger pLMs capture more of the subtle
@@ -1256,7 +1393,7 @@ with tab_results:
         name="ESM-2 650M",
     ))
     fig_dumb.update_layout(
-        title="Figure 10. Per-class F1: 8M vs 650M (SVM), sorted by gain",
+        title="Figure 12. Per-class F1: 8M vs 650M (SVM), sorted by gain",
         xaxis_title="F1", yaxis_title="Compartment",
         height=500, template="plotly_white",
         yaxis=dict(autorange="reversed"), font=dict(size=13),
@@ -1265,7 +1402,7 @@ with tab_results:
     st.plotly_chart(fig_dumb, use_container_width=True)
     st.markdown(f"""
     <div class="fig-caption">
-    <b>Figure 10.</b> Per-class F1 comparison between the smallest (ESM-2 8M)
+    <b>Figure 12.</b> Per-class F1 comparison between the smallest (ESM-2 8M)
     and largest (ESM-2 650M) models, both with SVM classifier. Rows sorted
     by magnitude of improvement. Golgi apparatus, Lysosome/Vacuole, and
     Peroxisome, three of the four smallest classes, receive the largest
@@ -1277,50 +1414,10 @@ with tab_results:
 
     st.markdown("---")
 
-    # ── scatter: class frequency vs per-class F1 ──
-    st.subheader("3.9 Class Frequency vs. Per-Class Performance")
-    st.markdown(f"""
-    Figure 11 plots per-class F1 against training-set class frequency. There
-    is a moderate positive correlation (Pearson <i>r</i> ≈ 0.54), confirming
-    that rare compartments are harder to predict, but the correlation is
-    imperfect: Plastid (n=730) and Peroxisome (n=173) both achieve F1 > 0.78,
-    demonstrating that distinctive sequence signals can overcome low sample
-    counts{cite(29)}.
-    """, unsafe_allow_html=True)
-
-    fig_scat = go.Figure()
-    fig_scat.add_trace(go.Scatter(
-        x=[CLASS_DIST[c] for c in LABELS],
-        y=[PER_CLASS_F1_650M_SVM[c] for c in LABELS],
-        mode="markers+text",
-        marker=dict(size=[CLASS_DIST[c]/60 + 10 for c in LABELS],
-                    color="#bf5700", line=dict(color="#333", width=1)),
-        text=LABELS, textposition="top center",
-        hovertemplate="<b>%{text}</b><br>n=%{x}<br>F1=%{y:.3f}<extra></extra>",
-    ))
-    fig_scat.update_layout(
-        title="Figure 11. Class size vs per-class F1 (ESM-2 650M + SVM)",
-        xaxis_title="Training Set Count (log)", yaxis_title="Per-class F1",
-        xaxis=dict(type="log"), height=500,
-        template="plotly_white", font=dict(size=13), plot_bgcolor="white",
-    )
-    st.plotly_chart(fig_scat, use_container_width=True)
-    st.markdown(f"""
-    <div class="fig-caption">
-    <b>Figure 11.</b> Relationship between training-set class frequency
-    (x-axis, log scale) and per-class F1 on the test set. Marker size is
-    also proportional to class frequency. The moderate correlation reflects
-    a classic challenge in biological classification: underrepresented
-    classes are harder, but not impossible{cite(30)}.
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("---")
-
     # ── PCA ──
-    st.subheader("3.10 Visualization of Embedding Spaces (PCA)")
+    st.subheader("3.12 Visualization of Embedding Spaces (PCA)")
     st.markdown(f"""
-    Figure 12 projects each test-set embedding onto its first two principal
+    Figure 13 projects each test-set embedding onto its first two principal
     components, colored by subcellular compartment, for each of the four
     ESM-2 models. Visual separation between classes improves with model
     size: in the 8M plot, most compartments are heavily overlapping, while
@@ -1333,7 +1430,7 @@ with tab_results:
     st.image("cell13_fig0.png", use_container_width=True)
     st.markdown(f"""
     <div class="fig-caption">
-    <b>Figure 12.</b> 2D PCA projections of ESM-2 embeddings on the test set
+    <b>Figure 13.</b> 2D PCA projections of ESM-2 embeddings on the test set
     (8M, 35M, 150M, 650M from left to right). Each point is one protein;
     colors denote subcellular compartment. Note how cluster separation
     improves with model size. PCA explains only ~18–22% of total variance at
@@ -1344,28 +1441,8 @@ with tab_results:
 
     st.markdown("---")
 
-    # ── per-class MCC ──
-    st.subheader("3.11 Per-Class MCC Across Classifiers")
-    img_mcc_b64 = load_image_b64("cell14_fig0.png")
-    if img_mcc_b64:
-        st.image(f"data:image/png;base64,{img_mcc_b64}", use_container_width=True)
-    else:
-        st.image(get_image_path("cell14_fig0.png"), use_container_width=True)
-    st.markdown(f"""
-    <div class="fig-caption">
-    <b>Figure 13.</b> Per-class Matthews correlation coefficient (MCC) for
-    the ESM-2 650M model, broken down by classifier. MCC is a balanced
-    metric robust to class imbalance{cite(23)}. SVM dominates or matches
-    all other classifiers on every compartment. Endoplasmic reticulum and
-    Golgi apparatus are consistently hardest, mirroring the confusion
-    matrix (Figure 9).
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("---")
-
     # ── ROC ──
-    st.subheader("3.12 Per-Class ROC AUC")
+    st.subheader("3.13 Per-Class ROC AUC")
     fig_roc_bar = go.Figure()
     roc_sorted = sorted(ROC_AUC_PER_CLASS.items(), key=lambda x: x[1], reverse=True)
     fig_roc_bar.add_trace(go.Bar(
@@ -1388,58 +1465,6 @@ with tab_results:
     All classes achieve AUC > 0.87; Peroxisome (n=173) reaches 0.998,
     demonstrating that a distinctive targeting signal can compensate for low
     sample count{cite(29)}.
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    # ── statistical tests ──
-    st.subheader("3.13 Statistical Significance of Scaling")
-    st.markdown(f"""
-    Bootstrap 95% confidence intervals{cite(24)} for macro-F1 using SVM are
-    shown below. The 8M and 35M CIs do not overlap, nor do 35M and 150M,
-    indicating significant improvements. The 150M and 650M CIs, however,
-    <i>do</i> overlap (8M: [0.661, 0.705], 650M: [0.738, 0.778]) at the
-    per-model comparison, so by this criterion the 150M → 650M step is only
-    marginally significant.
-    """, unsafe_allow_html=True)
-
-    ci_df = pd.DataFrame([
-        {"Model": MODELS[m]["name"],
-         "Macro F1": f'{RESULTS[m]["svm"]["macro_f1"]:.4f}',
-         "95% CI": f'[{BOOTSTRAP_CI[m]["svm"][0]:.4f}, {BOOTSTRAP_CI[m]["svm"][1]:.4f}]'}
-        for m in models_list
-    ])
-    st.dataframe(ci_df, use_container_width=True, hide_index=True)
-
-    st.markdown(f"""
-    Table 5 shows Wilcoxon signed-rank test results{cite(25)} on per-class
-    F1 scores between adjacent model sizes, separately for each classifier:
-    """, unsafe_allow_html=True)
-
-    clf_for_wilcoxon = st.selectbox(
-        "Select classifier:", list(WILCOXON.keys()),
-        format_func=lambda x: CLF_NAMES[x],
-    )
-    w_rows = []
-    for comparison, pval, delta in WILCOXON[clf_for_wilcoxon]:
-        sig = "Yes (p < 0.05)" if pval < 0.05 else "No"
-        w_rows.append({"Comparison": comparison, "p-value": f"{pval:.4f}",
-                       "Mean F1 Change": f"+{delta:.4f}" if delta > 0 else f"{delta:.4f}",
-                       "Significant?": sig})
-    w_df = pd.DataFrame(w_rows)
-    st.dataframe(w_df, use_container_width=True, hide_index=True)
-
-    st.markdown(f"""
-    <div class="highlight-box">
-    <b>Key statistical finding (supports H3):</b> The 8M → 35M and
-    35M → 150M scaling steps yield statistically significant improvements
-    (<i>p</i> &lt; 0.05) for most classifiers. However, the 150M → 650M step
-    is <i>not</i> significant for SVM (<i>p</i> = 0.16), KNN (<i>p</i> = 0.19),
-    MLP (<i>p</i> = 0.38), or Random Forest (<i>p</i> = 0.32). This contrasts
-    sharply with the continued significant gains reported for regression
-    tasks in Vieira et al.{cite(14)} and suggests that classification and
-    regression have different scaling dynamics.
     </div>
     """, unsafe_allow_html=True)
 
@@ -1487,7 +1512,7 @@ with tab_discussion:
     ProtTrans{cite(11)} and ESM-1b{cite(9)}.
 
     <b>Finding 4: Class imbalance is the dominant remaining challenge.</b>
-    The confusion matrix (Fig. 9) and per-class F1 plots (Figs. 10, 11)
+    The confusion matrix (Fig. 11) and per-class F1 plots (Figs. 6, 12)
     reveal that under-represented compartments, especially those sharing
     trafficking pathways (endomembrane system), are systematically harder.
     No amount of scaling in the 8M to 650M range fully solves this problem;
@@ -1547,7 +1572,7 @@ with tab_discussion:
 
     st.subheader("4.3 Biological Interpretation")
     st.markdown(f"""
-    The pattern of errors in our best model (Figure 9) is biologically
+    The pattern of errors in our best model (Figure 11) is biologically
     coherent. The endomembrane system, comprising the ER, Golgi apparatus,
     and lysosome/vacuole, is a physically and functionally connected
     network through which proteins traffic via vesicular transport{cite(27)}.
@@ -1560,7 +1585,7 @@ with tab_discussion:
     single-sequence level. The confusability observed in our classifier
     likely reflects a real biological ambiguity rather than pure model
     failure.
- 
+
     Conversely, peroxisomal targeting is mediated by very short,
     well-defined motifs near the N- or C-terminus{cite(29)}. These signals
     are highly sequence-specific and easily detectable, which explains the
